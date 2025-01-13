@@ -40,6 +40,7 @@ if sys.version[0]=="3": raw_input=input
 KEYWORD = 'machine learning' # Default argument if command line is empty
 NRESULTS = 100 # Fetch 100 articles
 CSVPATH = os.getcwd() # Current folder as default path
+csvname = ''
 SAVECSV = True
 SORTBY = 'Citations'
 PLOT_RESULTS = False
@@ -78,6 +79,9 @@ def get_command_line_args():
     parser.add_argument('--endyear', type=int, help='End year when searching. Default is current year')
     parser.add_argument('--debug', action='store_true', help='Debug mode. Used for unit testing. It will get pages stored on web archive')
 
+    parser.add_argument('--csvname', type=str, help='The name of the output csv file. Default is name is generated from the query.')
+
+
     # Parse and read arguments and assign them to variables if exists
     args, _ = parser.parse_known_args()
 
@@ -97,6 +101,9 @@ def get_command_line_args():
     csvpath = CSVPATH
     if args.csvpath:
         csvpath = args.csvpath
+
+    if args.csvname:
+        csvname = args.csvname
 
     save_csv = SAVECSV
     if args.notsavecsv:
@@ -126,7 +133,7 @@ def get_command_line_args():
     if args.debug:
         debug = True
 
-    return keyword, nresults, save_csv, csvpath, sortby, langfilter, plot_results, start_year, end_year, debug
+    return keyword, nresults, save_csv, csvpath, sortby, langfilter, plot_results, start_year, end_year, debug, csvname
 
 
 def get_citations(content):
@@ -204,7 +211,7 @@ def format_strings(strings):
 
 def main():
     # Get command line arguments
-    keyword, number_of_results, save_database, path, sortby_column, langfilter, plot_results, start_year, end_year, debug = get_command_line_args()
+    keyword, number_of_results, save_database, path, sortby_column, langfilter, plot_results, start_year, end_year, debug, csvname = get_command_line_args()
 
     print("Running with the following parameters:")
     print(f"Keyword: {keyword}, Number of results: {number_of_results}, Save database: {save_database}, Path: {path}, Sort by: {sortby_column}, Permitted Languages: {langfilter}, Plot results: {plot_results}, Start year: {start_year}, End year: {end_year}, Debug: {debug}")
@@ -337,8 +344,11 @@ def main():
 
     # Save results
     if save_database:
-        fpath_csv = os.path.join(path,keyword.replace(' ','_').replace(':','_')+'.csv')
-        fpath_csv = fpath_csv[:MAX_CSV_FNAME]
+        if csvname == '':
+            fpath_csv = os.path.join(path,keyword.replace(' ','_').replace(':','_')+'.csv')
+            fpath_csv = fpath_csv[:MAX_CSV_FNAME]
+        else:
+            fpath_csv = os.path.join(path, csvname)
         data_ranked.to_csv(fpath_csv, encoding='utf-8')
         print('Results saved to', fpath_csv)
 
